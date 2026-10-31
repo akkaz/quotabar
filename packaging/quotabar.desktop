@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=QuotaBar
+Comment=Quote Codex e Claude nel pannello GNOME
+Exec=quotabar settings
+Icon=quotabar
+Terminal=false
+Categories=System;Monitor;
+Keywords=AI;Codex;Claude;usage;quota;
+StartupNotify=true

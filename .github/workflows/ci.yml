@@ -1,0 +1,40 @@
+name: Build and tests
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install build dependencies
+        run: sudo -A apt-get update && sudo -A apt-get install -y gjs gir1.2-adw-1 gir1.2-gtk-4.0 libglib2.0-bin dpkg-dev desktop-file-utils shellcheck
+      - name: Check code and installer
+        run: |
+          /usr/bin/python3 scripts/check.py
+          bash -n install.sh
+          shellcheck install.sh
+          desktop-file-validate packaging/quotabar.desktop
+      - name: Build packages
+        run: |
+          /usr/bin/python3 scripts/build.py
+          cd dist
+          sha256sum --check SHA256SUMS
+      - name: Keep build artifacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: quotabar-packages
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,14 @@
+.qb-panel { spacing: 18px; }
+.qb-provider { spacing: 7px; }
+.qb-quota { spacing: 5px; }
+.qb-period { opacity: 0.85; font-size: 0.8em; }
+.qb-logo-claude { color: #d97757; }
+.qb-provider-name { font-weight: 600; }
+.qb-number { font-feature-settings: "tnum"; }
+.qb-muted { opacity: 0.72; font-size: 0.9em; }
+.qb-warning { color: #f6c54b; }
+.qb-demo { font-size: 0.8em; font-weight: 700; color: #f6c54b; }
+.qb-menu-title { font-weight: 700; font-size: 1.15em; }
+.qb-heading { font-weight: 700; }
+.qb-window { spacing: 8px; min-width: 310px; padding: 10px; border-radius: 8px; }
+.qb-menu-value { font-size: 1.05em; font-weight: 600; }

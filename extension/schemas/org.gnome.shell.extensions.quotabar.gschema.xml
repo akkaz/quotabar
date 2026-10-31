@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.quotabar" path="/org/gnome/shell/extensions/quotabar/">
+    <key name="show-codex" type="b"><default>true</default><summary>Mostra Codex</summary></key>
+    <key name="show-claude" type="b"><default>true</default><summary>Mostra Claude</summary></key>
+    <key name="provider-logos" type="b"><default>true</default><summary>Loghi dei provider al posto dei nomi</summary></key>
+    <key name="show-bars" type="b"><default>true</default><summary>Mostra le barrette</summary></key>
+    <key name="show-countdown" type="b"><default>true</default><summary>Tempo al reset nel pannello</summary></key>
+    <key name="show-weekly" type="b"><default>true</default><summary>Mostra anche la finestra settimanale</summary></key>
+    <key name="remaining" type="b"><default>false</default><summary>Mostra la percentuale rimanente</summary></key>
+    <key name="compact" type="b"><default>false</default><summary>Nomi abbreviati nel pannello</summary></key>
+    <key name="position" type="s"><choices><choice value="right"/><choice value="center"/><choice value="left"/></choices><default>'right'</default><summary>Posizione nel pannello</summary></key>
+    <key name="codex-interval" type="i"><range min="30" max="900"/><default>60</default><summary>Intervallo Codex, secondi</summary></key>
+    <key name="claude-interval" type="i"><range min="60" max="1800"/><default>180</default><summary>Intervallo Claude, secondi</summary></key>
+    <key name="demo-mode" type="b"><default>false</default><summary>Dati dimostrativi, chiaramente etichettati</summary></key>
+  </schema>
+</schemalist>

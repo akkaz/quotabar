@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+dist/
+extension/schemas/gschemas.compiled
+.impeccable/
+.cache/
+.env
+*.deb
+*.credentials.json
+auth.json
