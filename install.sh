@@ -28,7 +28,8 @@ while (($#)); do
             (($# >= 2)) || die '--version needs a value.'
             release_tag="v${2#v}"; shift 2 ;;
         --download-only)
-            (($# >= 2)) && [[ -n "$2" ]] || die '--download-only needs a directory.'
+            (($# >= 2)) || die '--download-only needs a directory.'
+            [[ -n "$2" ]] || die '--download-only needs a directory.'
             download_directory="$2"; shift 2 ;;
         --help|-h) usage; exit 0 ;;
         *) die "Unknown option: $1. Use --help." ;;
