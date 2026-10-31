@@ -126,8 +126,8 @@ symbolic logo. Each quota is its own group with `quota` spacing. Claude has
 separate 5h and 7g labels, meters, percentages and countdowns; Codex has one
 meter, preferring the actual weekly window when available. Textual provider
 names can replace logos; compact fallback names remain `Cl` and `Cx`. Inline
-labels keep their full natural width without ellipsizing. The weekly toggle
-controls the second Claude window. No missing window is invented. The indicator can be placed at the left, center or right of the panel.
+labels keep their full natural width without ellipsizing. The Claude window selector chooses both, five-hour-only, or weekly-only; the
+legacy weekly preference remains readable for upgrades. No missing window is invented. The indicator can be placed at the left, center or right of the panel.
 When both providers are hidden, the button retains the `QuotaBar` fallback label.
 
 Popup quota windows stack a label/value row, meter and reset line. Each window
@@ -135,14 +135,16 @@ has a minimum width matching its popup meter, uses `window` spacing and
 `window-inset` padding. A 7% alpha wash of the meter color and a matching
 percentage accent make each limit easier to scan; unknown values stay neutral.
 Percentage text is 1.05em at weight 600. The uncolored native row supplies the
-theme foreground used to select dark/light accents. Text accents mix 15% white
-on dark surfaces to preserve contrast on the tint, while meters retain their
-original color. Explanatory labels wrap with a maximum width of
+theme foreground used to select dark/light accents. Custom colors are validated six-digit hex values; blank settings use the
+theme-aware defaults. Percentage text keeps the selected color when contrast
+permits, otherwise it is mixed toward black or white until legible on the actual
+menu surface and its tint. Meter fills retain the chosen color. Explanatory labels wrap with a maximum width of
 340px. Native popup rows provide their own surrounding padding and separators.
 
-Preferences open at a default size of 620 × 760px and use one scrollable native
-page. Groups appear in this order: activation, accounts, appearance, polling,
-and demonstration. This default window size is an initial request; it is not a
+Preferences open at a default size of 620 × 760px with two native pages.
+General contains activation, accounts, polling and demonstration. Appearance
+contains panel options and three native color pickers with
+a reset action. This default window size is an initial request; it is not a
 fixed minimum or a guarantee that all settings fit without scrolling.
 
 ## Elevation & Depth

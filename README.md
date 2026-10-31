@@ -46,7 +46,7 @@ Download the `.deb` from [Releases](https://github.com/akkaz/quotabar/releases/l
 and open it with your graphical package installer, or install it from Downloads:
 
 ```bash
-sudo -A apt install ./quotabar_0.2.1-1_all.deb
+sudo -A apt install ./quotabar_0.3.0-1_all.deb
 ```
 
 Manual `sudo -A` commands assume you have configured `SUDO_ASKPASS`.
@@ -54,7 +54,7 @@ Manual `sudo -A` commands assume you have configured `SUDO_ASKPASS`.
 Pin a release:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.2.1
+curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.3.0
 ```
 
 Download and verify without installing anything:
@@ -76,20 +76,21 @@ then log out and back in after installation.
 
 ## What you see
 
-- **Claude:** separate meters for the **5-hour** and **weekly** limits.
+- **Claude:** choose **5 hours**, **weekly only**, or **both** in the panel.
 - **Codex:** one meter, using the weekly limit when the account provides one.
 - **Provider logos**, percentages, and a countdown to the next reset.
 - **A detailed menu** with larger meters, matching tints, model-specific limits
   when available, and the age of the last successful reading.
 - **Native settings:** position, visible providers, logos or names, bars,
-  countdowns, used or remaining percentages, and refresh intervals.
+  countdowns, used or remaining percentages, refresh intervals, and custom quota colors.
 - **Demo mode:** try the interface without accounts or provider requests.
 
 <p align="center"><img src="docs/images/quotabar-menu.png" width="320" alt="QuotaBar GNOME menu with separate Claude 5-hour and weekly meters, Codex limits, colored percentages and reset countdowns"></p>
 <p align="center"><em>Actual GNOME 48 capture with synthetic data, explicitly marked DEMO. “7g” means seven days.</em></p>
 
 Colors always describe **remaining quota**, even if you choose to display the
-used percentage:
+used percentage. In **Appearance / Aspetto**, choose a color for each state or
+restore automatic theme-aware colors. The table shows the defaults:
 
 | Remaining quota | Color |
 | --- | --- |
@@ -190,7 +191,7 @@ cd quotabar
 /usr/bin/python3 scripts/build.py
 ```
 
-Build requirements: Python 3.10+, GJS, GTK 4, Libadwaita 1.4+,
+Build requirements: Python 3.10+, GJS, GTK 4.10+, Libadwaita 1.4+,
 `glib-compile-schemas`, and `dpkg-deb`. A GNOME 48 session is needed to run the
 indicator, but not to build its packages. Builds require no root privileges.
 

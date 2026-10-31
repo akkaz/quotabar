@@ -9,7 +9,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "0.2.1"
+VERSION = "0.3.0"
 UUID = "quotabar@akkaz.dev"
 DIST = ROOT / "dist"
 
@@ -51,7 +51,7 @@ Priority: optional
 Architecture: all
 Maintainer: Gio Marco Baglioni <akkaz@users.noreply.github.com>
 Installed-Size: {size}
-Depends: gnome-shell (>= 48~), gnome-shell (<< 49~), gjs, python3 (>= 3.10), gir1.2-adw-1 (>= 1.4), gir1.2-gtk-4.0, libglib2.0-bin, x-terminal-emulator
+Depends: gnome-shell (>= 48~), gnome-shell (<< 49~), gjs, python3 (>= 3.10), gir1.2-adw-1 (>= 1.4), gir1.2-gtk-4.0 (>= 4.10), libglib2.0-bin, x-terminal-emulator
 Description: Codex and Claude subscription usage in the GNOME top panel
  Native GNOME 48 indicator with usage bars, reset countdowns, account setup
  and automatic polling. Requires user-installed official provider CLIs.

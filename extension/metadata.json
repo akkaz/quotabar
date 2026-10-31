@@ -2,8 +2,8 @@
   "uuid": "quotabar@akkaz.dev",
   "name": "QuotaBar",
   "description": "Quote di utilizzo Codex e Claude: barrette, percentuali e tempi di reset nel pannello.",
-  "version": 3,
-  "version-name": "0.2.1",
+  "version": 4,
+  "version-name": "0.3.0",
   "shell-version": ["48"],
   "settings-schema": "org.gnome.shell.extensions.quotabar"
 }

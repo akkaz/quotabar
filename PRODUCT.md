@@ -49,3 +49,9 @@ GNOME appearance; no implied endorsement by OpenAI or Anthropic.
 Claude gets two meters (5 hours and weekly), Codex one. Provider logos replace
 full names by default. Meter color follows remaining quota regardless of which
 percentage mode is displayed. These are user-approved changes to the native system.
+
+## Configurable appearance requested 2026-10-31
+
+Claude can show 5 hours, weekly only, or both in the panel. Users can customize
+the three quota-state colors and restore the automatic theme-aware palette.
+The detailed menu retains all actual quota windows.

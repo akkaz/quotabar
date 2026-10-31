@@ -39,7 +39,7 @@ Scarica il `.deb` dalle [release](https://github.com/akkaz/quotabar/releases/lat
 e aprilo con il gestore pacchetti grafico, oppure installalo così:
 
 ```bash
-sudo -A apt install ./quotabar_0.2.1-1_all.deb
+sudo -A apt install ./quotabar_0.3.0-1_all.deb
 ```
 
 I comandi manuali con `sudo -A` richiedono `SUDO_ASKPASS` configurato.
@@ -47,7 +47,7 @@ I comandi manuali con `sudo -A` richiedono `SUDO_ASKPASS` configurato.
 Per una versione precisa:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.2.1
+curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.3.0
 ```
 
 Per scaricare e verificare senza installare:
@@ -64,20 +64,21 @@ dopo l'installazione esci dalla sessione e rientra.
 
 ## Cosa mostra
 
-- **Claude:** due barrette separate, per **5 ore** e **settimana**.
+- **Claude:** scegli **solo 5 ore**, **solo settimana** oppure **entrambe** nel pannello.
 - **Codex:** una barretta, settimanale quando il provider la rende disponibile.
 - Loghi dei provider, percentuali e conto alla rovescia al reset.
 - Menu con limiti più grandi, sfondi leggermente colorati, eventuali quote per
   modello e momento dell'ultima lettura riuscita.
 - Impostazioni per posizione, provider, loghi o nomi, barrette, percentuale usata
-  o residua, conto alla rovescia e intervalli di lettura.
+  o residua, conto alla rovescia, intervalli di lettura e colori delle quote.
 - Modalità **DEMO**, senza account e senza richieste ai provider.
 
 <p align="center"><img src="docs/images/quotabar-menu.png" width="320" alt="Menu QuotaBar su GNOME 48 con quote Claude e Codex, colori e tempi di reset"></p>
 <p align="center"><em>Cattura reale su GNOME 48 con numeri dimostrativi, indicati come DEMO.</em></p>
 
 Il colore segue sempre la **quota rimanente**, anche se scegli di visualizzare
-la percentuale usata:
+la percentuale usata. Nella scheda **Aspetto** puoi scegliere un colore per ogni
+stato o ripristinare i colori automatici, adattati al tema. Questi sono i valori predefiniti:
 
 | Quota rimanente | Colore |
 | --- | --- |

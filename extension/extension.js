@@ -7,7 +7,7 @@ import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
-import {age, countdown, expired, panelWindows, percent, quotaMeter} from './presentation.js';
+import {age, countdown, expired, panelWindows, percent, quotaMeter, readableAccent, resolveClaudeWindowMode} from './presentation.js';
 
 const names = {claude: 'Claude', codex: 'Codex'};
 
@@ -22,7 +22,16 @@ function darkSurface(widget) {
     return (color.red * 0.2126 + color.green * 0.7152 + color.blue * 0.0722) > 128;
 }
 
-function bar(used, width = 38, height = 6, displayRemaining = false) {
+function surfaceColor(widget) {
+    for (let actor = widget; actor; actor = actor.get_parent()) {
+        const background = actor.get_theme_node?.().get_background_color();
+        if (background?.alpha === 255)
+            return [background.red, background.green, background.blue].map(c => c / 255);
+    }
+    return darkSurface(widget) ? [0.21, 0.21, 0.22] : [1, 1, 1];
+}
+
+function bar(used, width = 38, height = 6, displayRemaining = false, palette = {}) {
     const area = new St.DrawingArea({width, height, y_align: Clutter.ActorAlign.CENTER});
     area.connect('repaint', widget => {
         const cr = widget.get_context();
@@ -35,7 +44,7 @@ function bar(used, width = 38, height = 6, displayRemaining = false) {
             cr.closePath();
         };
         const color = widget.get_theme_node().get_foreground_color();
-        const meter = quotaMeter(used, displayRemaining, darkSurface(widget));
+        const meter = quotaMeter(used, displayRemaining, darkSurface(widget), palette);
         cr.setSourceRGBA(color.red / 255, color.green / 255, color.blue / 255, 0.18);
         pill(w);
         cr.fill();
@@ -193,7 +202,9 @@ export default class QuotaBar extends Extension {
                 const title = this._settings.get_boolean('compact') ? {claude: 'Cl', codex: 'Cx'}[name] : names[name];
                 group.add_child(label(title, 'qb-provider-name'));
             }
-            const windows = panelWindows(name, data?.windows, this._settings.get_boolean('show-weekly'));
+            const mode = resolveClaudeWindowMode(this._settings.get_user_value('claude-window')?.deep_unpack(),
+                this._settings.get_boolean('show-weekly'));
+            const windows = panelWindows(name, data?.windows, mode);
             if (windows.length === 0)
                 group.add_child(label(data?.status === 'error' ? '!' : '—', 'qb-muted'));
             let stale = data?.status === 'error' || Boolean(this._message);
@@ -207,7 +218,7 @@ export default class QuotaBar extends Extension {
                 if (name === 'claude')
                     quota.add_child(label(item.label, 'qb-period'));
                 if (this._settings.get_boolean('show-bars'))
-                    quota.add_child(bar(item.used, 38, 6, remaining));
+                    quota.add_child(bar(item.used, 38, 6, remaining, this._palette()));
                 quota.add_child(label(percent(item, remaining), old ? 'qb-muted' : 'qb-number'));
                 if (this._settings.get_boolean('show-countdown'))
                     quota.add_child(label(countdown(item.resets_at), 'qb-muted'));
@@ -238,6 +249,12 @@ export default class QuotaBar extends Extension {
         this._button.menu.addMenuItem(row);
     }
 
+    _palette() {
+        return {green: this._settings.get_string('color-available'),
+            amber: this._settings.get_string('color-warning'),
+            red: this._settings.get_string('color-critical')};
+    }
+
     _window(item) {
         const row = new PopupMenu.PopupBaseMenuItem({reactive: true, activate: false,
             hover: false, can_focus: false});
@@ -250,18 +267,17 @@ export default class QuotaBar extends Extension {
         value.x_align = Clutter.ActorAlign.END;
         heading.add_child(value);
         column.add_child(heading);
-        column.add_child(bar(item.used, 310, 8));
+        column.add_child(bar(item.used, 310, 8, false, this._palette()));
         const reset = countdown(item.resets_at);
         column.add_child(label(expired(item) ? 'Reset raggiunto · attendo una nuova lettura' : `Reset tra ${reset}`, 'qb-muted'));
         row.add_child(column);
         const updateAccent = () => {
             // Read the uncolored native row, so the accent follows theme changes.
             const onDark = darkSurface(row);
-            const meter = quotaMeter(item.used, false, onDark);
+            const meter = quotaMeter(item.used, false, onDark, this._palette());
             const rgb = meter?.color.map(channel => Math.round(channel * 255)).join(', ');
-            // Lift text slightly on dark surfaces to retain AA contrast on its tint.
-            const textRgb = meter?.color.map(channel =>
-                Math.round((onDark ? channel * 0.85 + 0.15 : channel) * 255)).join(', ');
+            const textRgb = meter ? readableAccent(meter.color, surfaceColor(row))
+                .map(channel => Math.round(channel * 255)).join(', ') : null;
             const surfaceStyle = rgb ? `background-color: rgba(${rgb}, 0.07);` : '';
             const valueStyle = textRgb ? `color: rgb(${textRgb});` : '';
             if (column.get_style() !== surfaceStyle)

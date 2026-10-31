@@ -1,8 +1,9 @@
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
+import Gdk from 'gi://Gdk';
 import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk';
-import {age, percent} from './presentation.js';
+import {age, parseHexColor, percent, quotaMeter, resolveClaudeWindowMode} from './presentation.js';
 
 const UUID = 'quotabar@akkaz.dev';
 
@@ -51,9 +52,12 @@ export function fillPreferences(window, settings, helper) {
     let closed = false;
     let reading = false;
     let readAgain = false;
+    const cleanups = [];
     window.connect('close-request', () => {
         closed = true;
         cancellable.cancel();
+        for (const cleanup of cleanups)
+            cleanup();
         Gtk.StyleContext.remove_provider_for_display(display, contrast);
         return false;
     });
@@ -77,7 +81,7 @@ export function fillPreferences(window, settings, helper) {
         }
     };
 
-    const page = new Adw.PreferencesPage({title: 'QuotaBar', icon_name: 'utilities-system-monitor-symbolic'});
+    const page = new Adw.PreferencesPage({title: 'Generali', name: 'general', icon_name: 'utilities-system-monitor-symbolic'});
     window.add(page);
     const activation = new Adw.PreferencesGroup({title: 'Nella barra, quando serve',
         description: 'Barrette, quote e tempi di reset accanto agli indicatori di GNOME. Compatibile con GNOME 48.'});
@@ -179,13 +183,32 @@ export function fillPreferences(window, settings, helper) {
     };
     refresh.connect('clicked', () => read(true));
 
+    const appearancePage = new Adw.PreferencesPage({title: 'Aspetto', name: 'appearance',
+        icon_name: 'preferences-desktop-display-symbolic'});
+    window.add(appearancePage);
     const appearance = new Adw.PreferencesGroup({title: 'Come appare'});
     toggle(appearance, settings, 'show-claude', 'Mostra Claude');
     toggle(appearance, settings, 'show-codex', 'Mostra Codex');
     toggle(appearance, settings, 'show-bars', 'Barrette nel pannello');
     toggle(appearance, settings, 'show-countdown', 'Tempo al reset');
-    toggle(appearance, settings, 'show-weekly', 'Mostra anche la settimana Claude',
-        'Claude: una barra per 5 ore e una per 7 giorni. Codex: una sola barra.');
+    const modes = ['both', 'five-hour', 'weekly'];
+    const selectedMode = () => modes.indexOf(resolveClaudeWindowMode(
+        settings.get_user_value('claude-window')?.deep_unpack(), settings.get_boolean('show-weekly')));
+    const claudeWindow = new Adw.ComboRow({title: 'Limiti Claude nel pannello',
+        subtitle: 'Il menu al clic conserva tutti i limiti disponibili.', use_markup: false,
+        model: Gtk.StringList.new(['5 ore e settimana', 'Solo 5 ore', 'Solo settimana']),
+        selected: selectedMode()});
+    claudeWindow.connect('notify::selected', () => {
+        const mode = modes[claudeWindow.selected];
+        if (mode && claudeWindow.selected !== selectedMode())
+            settings.set_string('claude-window', mode);
+    });
+    const modeSignal = settings.connect('changed::claude-window', () => { claudeWindow.selected = selectedMode(); });
+    cleanups.push(() => settings.disconnect(modeSignal));
+    const legacySignal = settings.connect('changed::show-weekly', () => { claudeWindow.selected = selectedMode(); });
+    cleanups.push(() => settings.disconnect(legacySignal));
+    settings.bind('show-claude', claudeWindow, 'sensitive', Gio.SettingsBindFlags.GET);
+    appearance.add(claudeWindow);
     toggle(appearance, settings, 'provider-logos', 'Loghi dei provider',
         'Al posto dei nomi nel pannello.');
     toggle(appearance, settings, 'remaining', 'Mostra la percentuale rimanente',
@@ -193,16 +216,66 @@ export function fillPreferences(window, settings, helper) {
     const compact = toggle(appearance, settings, 'compact', 'Nomi compatti', 'Cl e Cx quando i loghi sono disattivati.');
     settings.bind('provider-logos', compact, 'sensitive',
         Gio.SettingsBindFlags.GET | Gio.SettingsBindFlags.INVERT_BOOLEAN);
-    appearance.add(new Adw.ActionRow({title: 'Colori della quota residua',
-        subtitle: 'Verde oltre il 50%, giallo sopra il 20% e fino al 50%, rosso al 20% o meno. Il colore segue sempre la quota disponibile.',
-        use_markup: false}));
     const positions = ['right', 'center', 'left'];
     const position = new Adw.ComboRow({title: 'Posizione',
         model: Gtk.StringList.new(['Accanto agli indicatori', 'Accanto all’orologio', 'A sinistra']),
         selected: Math.max(0, positions.indexOf(settings.get_string('position')))});
     position.connect('notify::selected', () => settings.set_string('position', positions[position.selected]));
     appearance.add(position);
-    page.add(appearance);
+    appearancePage.add(appearance);
+
+    const colors = new Adw.PreferencesGroup({title: 'Colori delle quote',
+        description: 'Gli stessi colori nel pannello e nel menu. La percentuale rimanente determina lo stato; il testo viene adattato per restare leggibile.'});
+    const styleManager = Adw.StyleManager.get_default();
+    const colorRows = [];
+    for (const [key, used, title, threshold] of [
+        ['color-available', 0, 'Quota disponibile', 'Oltre il 50% rimanente'],
+        ['color-warning', 60, 'Attenzione', 'Dal 50% fino a oltre il 20% rimanente'],
+        ['color-critical', 90, 'Quasi esaurita', '20% rimanente o meno'],
+    ]) {
+        const row = new Adw.ActionRow({title, use_markup: false});
+        const chooser = new Gtk.ColorDialogButton({valign: Gtk.Align.CENTER,
+            dialog: new Gtk.ColorDialog({title: `Colore · ${title}`, with_alpha: false})});
+        chooser.update_property([Gtk.AccessibleProperty.LABEL], [`Colore: ${title}`]);
+        let syncing = false;
+        const sync = () => {
+            syncing = true;
+            const custom = settings.get_string(key);
+            const rgb = parseHexColor(custom) ?? quotaMeter(used, false, styleManager.dark).color;
+            chooser.rgba = new Gdk.RGBA({red: rgb[0], green: rgb[1], blue: rgb[2], alpha: 1});
+            row.subtitle = `${threshold} · ${parseHexColor(custom) ? custom.toUpperCase() : 'Automatico'}`;
+            syncing = false;
+        };
+        chooser.connect('notify::rgba', () => {
+            if (syncing)
+                return;
+            const rgba = chooser.rgba;
+            const hex = '#' + [rgba.red, rgba.green, rgba.blue]
+                .map(channel => Math.round(channel * 255).toString(16).padStart(2, '0')).join('');
+            if (settings.get_string(key) !== hex)
+                settings.set_string(key, hex);
+        });
+        row.add_suffix(chooser);
+        row.activatable_widget = chooser;
+        const colorSignal = settings.connect(`changed::${key}`, sync);
+        cleanups.push(() => settings.disconnect(colorSignal));
+        sync();
+        colorRows.push(sync);
+        colors.add(row);
+    }
+    const themeSignal = styleManager.connect('notify::dark', () => colorRows.forEach(sync => sync()));
+    cleanups.push(() => styleManager.disconnect(themeSignal));
+    const resetRow = new Adw.ActionRow({title: 'Ripristina colori automatici',
+        subtitle: 'Torna a verde, giallo e rosso, adattati al tema.', use_markup: false});
+    const resetColors = new Gtk.Button({label: 'Ripristina', valign: Gtk.Align.CENTER});
+    resetColors.connect('clicked', () => {
+        for (const key of ['color-available', 'color-warning', 'color-critical'])
+            settings.reset(key);
+        toast('Colori automatici ripristinati.');
+    });
+    resetRow.add_suffix(resetColors);
+    colors.add(resetRow);
+    appearancePage.add(colors);
 
     const polling = new Adw.PreferencesGroup({title: 'Aggiornamento automatico',
         description: 'Il conto alla rovescia è locale. Le quote vengono lette periodicamente, anche con le CLI chiuse. In caso di errori gli intervalli aumentano.'});

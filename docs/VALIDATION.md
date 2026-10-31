@@ -76,3 +76,17 @@ checks. Existing-account reads do not prove a fresh authentication flow.
   invalid version arguments, and unsupported GNOME versions. Network access and
   privileged commands are mocked; checksum and Debian metadata checks are real.
 - Public documentation screenshots contain synthetic DEMO data only.
+
+## 0.3.0 configurable appearance
+
+- 21 Python tests and 70 GJS presentation checks pass, with native GTK imports,
+  strict schema compilation and JavaScript syntax checks.
+- Window selection covers weekly-only, five-hour-only, both, absent requested
+  windows and older weekly-toggle preferences.
+- Color tests cover custom palettes, malformed values and injection attempts,
+  plus readable accent text across 21 color/surface combinations.
+- In isolated GNOME 48, actual native controls select each Claude mode, preserve
+  the full popup, persist all three colors, update popup tints and restore the
+  automatic palette. External setting changes and legacy preferences synchronize.
+- The color control opens an actual visible `GtkColorChooserDialog` in the
+  isolated session, rather than just changing a swatch programmatically.

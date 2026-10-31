@@ -7,6 +7,10 @@
     <key name="show-bars" type="b"><default>true</default><summary>Mostra le barrette</summary></key>
     <key name="show-countdown" type="b"><default>true</default><summary>Tempo al reset nel pannello</summary></key>
     <key name="show-weekly" type="b"><default>true</default><summary>Mostra anche la finestra settimanale</summary></key>
+    <key name="claude-window" type="s"><choices><choice value="both"/><choice value="five-hour"/><choice value="weekly"/></choices><default>'both'</default><summary>Finestre Claude nel pannello</summary></key>
+    <key name="color-available" type="s"><default>''</default><summary>Colore quota disponibile, #RRGGBB o vuoto per automatico</summary></key>
+    <key name="color-warning" type="s"><default>''</default><summary>Colore quota in attenzione, #RRGGBB o vuoto per automatico</summary></key>
+    <key name="color-critical" type="s"><default>''</default><summary>Colore quota quasi esaurita, #RRGGBB o vuoto per automatico</summary></key>
     <key name="remaining" type="b"><default>false</default><summary>Mostra la percentuale rimanente</summary></key>
     <key name="compact" type="b"><default>false</default><summary>Nomi abbreviati nel pannello</summary></key>
     <key name="position" type="s"><choices><choice value="right"/><choice value="center"/><choice value="left"/></choices><default>'right'</default><summary>Posizione nel pannello</summary></key>

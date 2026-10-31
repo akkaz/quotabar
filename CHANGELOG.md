@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — 2026-10-31
+
+- Choose Claude's 5-hour limit, weekly limit, or both in the panel.
+- Older settings that hid the weekly limit keep their previous 5-hour-only mode.
+- Customize available, warning and critical colors with native color pickers;
+  reset to theme-aware automatic colors with one click.
+- Share the palette between panel and popup, with adaptive readable percentage text.
+- Separate General and Appearance settings tabs.
+
 ## 0.2.1 — 2026-10-31
 
 - First public release, with English/Italian documentation and a one-line installer.

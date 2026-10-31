@@ -18,8 +18,10 @@ tint and colored percentage. Labels, reset times and the native menu stay neutra
 
 FIRST VIEWPORT: provider logos identify the two groups. Claude shows a short
 meter, percentage and reset time for each of 5h and 7g; Codex shows one actual
-quota window. The weekly toggle controls the second Claude meter; a logo toggle
-restores textual names. The open menu
+quota window. The Claude selector chooses 5h, weekly-only or both; a logo toggle
+restores textual names. Three native color pickers customize the semantic palette
+for both panel and popup, with a theme-aware reset. General and Appearance tabs
+keep account setup separate from visual configuration. The open menu
 starts with the provider's real windows; account setup begins with activation
 and the two provider buttons. DEMO and stale states are explicit.
 
