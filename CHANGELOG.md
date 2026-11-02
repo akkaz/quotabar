@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.1 — 2026-11-02
+
+- Recover immediately when Claude Code renews credentials after an authentication
+  failure, instead of waiting for an old error's hour-long backoff.
+- Check authentication recovery every minute while keeping provider rate-limit
+  backoff intact. Credentials remain owned and refreshed by the official CLI.
+- Never show cached percentages as current after a failed or stale reading;
+  retain last-good data privately for recovery and hide expired quota windows.
+- Apply the same freshness rules when another reader holds the cache lock.
+- Subscription usage is account-wide, including activity on other computers.
+
 ## 0.3.0 — 2026-10-31
 
 - Choose Claude's 5-hour limit, weekly limit, or both in the panel.

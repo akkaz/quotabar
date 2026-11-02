@@ -46,7 +46,7 @@ Download the `.deb` from [Releases](https://github.com/akkaz/quotabar/releases/l
 and open it with your graphical package installer, or install it from Downloads:
 
 ```bash
-sudo -A apt install ./quotabar_0.3.0-1_all.deb
+sudo -A apt install ./quotabar_0.3.1-1_all.deb
 ```
 
 Manual `sudo -A` commands assume you have configured `SUDO_ASKPASS`.
@@ -54,7 +54,7 @@ Manual `sudo -A` commands assume you have configured `SUDO_ASKPASS`.
 Pin a release:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.3.0
+curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.3.1
 ```
 
 Download and verify without installing anything:
@@ -123,6 +123,13 @@ refresh respects minimum request intervals and provider backoff after errors.
 Polling can continue while the provider CLIs are closed, as long as their
 credentials remain usable.
 
+Readings are account-wide: usage on another computer or VM is included by the
+provider. Failed or stale readings never display old percentages as current.
+When Claude Code renews its login, QuotaBar detects the credential-file change
+and retries an authentication failure without waiting for the old backoff.
+Provider HTTP 429 backoff still applies. Claude's interval can be set to 60
+seconds in preferences; polling is not instantaneous server push.
+
 **Claude integration:** its usage endpoint is not a documented public API and
 may change or stop accepting this client. QuotaBar reads the Claude Code session
 without rewriting or refreshing its credentials. If that session expires, open
@@ -136,7 +143,8 @@ still apply; QuotaBar is an independent project.
 - Credentials stay in the official CLIs' existing stores. QuotaBar does not include
   them in logs, usage JSON, the cache, or release artifacts.
 - A local cache stores quota readings and timestamps with private file permissions.
-- Failed reads retain the last successful reading, visibly marked as stale.
+- Failed reads retain the last successful reading privately for recovery;
+  stale percentages are hidden from the panel and menu until a fresh read succeeds.
 - Claude HTTP requests do not forward credentials through redirects.
 - No changes to CLI hooks, status lines, or provider configuration.
 

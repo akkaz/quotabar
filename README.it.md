@@ -39,7 +39,7 @@ Scarica il `.deb` dalle [release](https://github.com/akkaz/quotabar/releases/lat
 e aprilo con il gestore pacchetti grafico, oppure installalo così:
 
 ```bash
-sudo -A apt install ./quotabar_0.3.0-1_all.deb
+sudo -A apt install ./quotabar_0.3.1-1_all.deb
 ```
 
 I comandi manuali con `sudo -A` richiedono `SUDO_ASKPASS` configurato.
@@ -47,7 +47,7 @@ I comandi manuali con `sudo -A` richiedono `SUDO_ASKPASS` configurato.
 Per una versione precisa:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.3.0
+curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.3.1
 ```
 
 Per scaricare e verificare senza installare:
@@ -110,6 +110,14 @@ lette periodicamente: non è un flusso push. L'aggiornamento manuale rispetta gl
 intervalli minimi e il rallentamento dopo errori o limiti del provider. Le CLI
 possono restare chiuse finché le loro credenziali sono valide.
 
+Le quote riguardano l'intero account: includono anche l'uso da un altro PC o
+dalla VM. Se una lettura fallisce o è troppo vecchia, le percentuali vengono
+nascoste fino al prossimo aggiornamento riuscito. Quando Claude Code rinnova il
+login, QuotaBar rileva il cambiamento e riprova subito dopo un errore di
+autenticazione, rispettando comunque i limiti HTTP 429 del provider. Puoi
+impostare l'intervallo Claude a 60 secondi nelle preferenze: non è un flusso push
+istantaneo dal server.
+
 **Claude:** l'endpoint utilizzato non è una API pubblica documentata e può
 cambiare o smettere di accettare il client. QuotaBar legge la sessione di Claude
 Code senza modificarla né rinnovarne le credenziali. Se scade, apri Claude Code
@@ -125,7 +133,8 @@ in log, cache, JSON di utilizzo o pacchetti distribuiti. La cache locale contien
 letture e timestamp con permessi privati. Le richieste Claude non seguono redirect
 con il token. Non vengono modificati hook, statusline o configurazioni delle CLI.
 
-Una lettura fallita conserva il dato precedente, segnalandolo come vecchio.
+Una lettura fallita conserva il dato precedente soltanto nella cache privata
+per il recupero; non lo mostra come percentuale attuale nella barra o nel menu.
 Per i dettagli tecnici e i controlli eseguiti vedi [VALIDATION.md](docs/VALIDATION.md).
 
 ## Aggiornamenti e problemi comuni

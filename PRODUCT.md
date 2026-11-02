@@ -35,6 +35,8 @@ installable .deb packages with open source code.
 - CLI credentials stay in their existing locations. QuotaBar does not renew or
   write Claude credentials; expired Claude sessions require the CLI/login.
 - Polling is near real time: default Codex 60s, Claude 180s. Countdown is local.
+- Quotas are account-wide, including other devices. Stale/error percentages
+  must be hidden, and renewed CLI credentials must unblock authentication retries.
 - A plan with only one quota window must not be shown as two windows.
 - No credentials, account identifiers, conversations or telemetry in artifacts.
 - KDE and additional GNOME versions remain future compatibility work.

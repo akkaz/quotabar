@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from quotabar.cache import read_cache, snapshot, update_provider
+from quotabar.cache import claude_auth_revision, display_provider, read_cache, snapshot, update_provider
 from quotabar.model import normalize_claude, normalize_codex, window
 from quotabar.providers import CodexRPC, NoRedirect, ProviderError, fetch_claude
 
@@ -50,6 +50,82 @@ class Normalization(unittest.TestCase):
 
 
 class CacheRules(unittest.TestCase):
+    def test_claude_renewed_credentials_recover_from_hour_long_auth_backoff(self):
+        for saved_revision in (None, "old-login"):
+            old = {"status": "error", "error_kind": "auth", "observed_at": 100,
+                   "retry_at": 10000, "failures": 7,
+                   "windows": [{"used": 83}], "auth_revision": saved_revision}
+            with patch("quotabar.cache.time.time", return_value=500):
+                result = update_provider("claude", old,
+                    lambda: {"windows": [{"used": 100}]}, 180, False, 500, "renewed-login")
+            self.assertEqual(result["status"], "ok")
+            self.assertEqual(result["windows"], [{"used": 100}])
+            self.assertEqual(result["auth_revision"], "renewed-login")
+            self.assertEqual(result["failures"], 0)
+
+    def test_credential_change_does_not_bypass_provider_rate_limit(self):
+        old = {"status": "error", "error_kind": "rate_limit", "retry_at": 1000,
+               "observed_at": 100, "auth_revision": "old-login"}
+        def never():
+            self.fail("Credential changes must respect provider HTTP 429")
+        self.assertEqual(update_provider("claude", old, never, 180, True, 900, "new-login"), old)
+
+    def test_auth_errors_retry_in_one_minute_instead_of_one_hour(self):
+        def expired():
+            raise ProviderError("Sessione scaduta", "auth")
+        result = update_provider("claude", {"failures": 7}, expired, 180, False, 1000)
+        self.assertEqual(result["retry_at"], 1060)
+
+    def test_auth_revision_observes_cli_file_changes_without_copying_secrets(self):
+        with tempfile.TemporaryDirectory() as directory, \
+                patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": directory}):
+            self.assertEqual(claude_auth_revision(), "unavailable")
+            path = Path(directory) / ".credentials.json"
+            path.write_text("private-token-before")
+            before = claude_auth_revision()
+            path.write_text("private-token-after-renewal")
+            after = claude_auth_revision()
+            self.assertNotEqual(before, after)
+            self.assertNotIn("private-token", before + after)
+
+    def test_display_never_emits_error_or_stale_cached_percentages(self):
+        for state in ({"status": "error", "error_kind": "auth", "observed_at": 990},
+                      {"status": "error", "error_kind": "network", "observed_at": 990},
+                      {"status": "ok", "observed_at": 100},
+                      {"status": "ok", "observed_at": 2000}):
+            old = {**state, "windows": [{"used": 83}], "extra": [{"used": 81}],
+                   "auth_revision": "internal-file-revision"}
+            result = display_provider(old, 180, 1000)
+            self.assertEqual(result["windows"], [])
+            self.assertEqual(result["extra"], [])
+            self.assertNotIn("auth_revision", result)
+            self.assertEqual(old["windows"], [{"used": 83}])
+
+    def test_display_keeps_current_global_quota_and_drops_expired_window(self):
+        live = {"status": "ok", "observed_at": 990, "windows": [
+            {"id": "five_hour", "used": 35, "resets_at": 900},
+            {"id": "seven_day", "used": 100, "resets_at": 2000}], "extra": []}
+        result = display_provider(live, 180, 1000)
+        self.assertEqual([item["used"] for item in result["windows"]], [100])
+
+    def test_busy_cache_reader_hides_stale_values_and_disabled_provider(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)
+            (path / "usage.json").write_text(json.dumps({
+                "claude": {"status": "error", "error_kind": "auth", "observed_at": 100,
+                           "windows": [{"used": 83}], "extra": [], "auth_revision": "internal"},
+                "codex": {"status": "ok", "observed_at": 990, "windows": [{"used": 77}]}}))
+            with patch("quotabar.cache.cache_directory", return_value=path), \
+                    patch("quotabar.cache.fcntl.flock", side_effect=BlockingIOError), \
+                    patch("quotabar.cache.time.monotonic", side_effect=[0, 6]), \
+                    patch("quotabar.cache.time.time", return_value=1000), \
+                    patch("quotabar.cache.fetch_claude") as fetch:
+                result = snapshot(only=["claude"])
+            fetch.assert_not_called()
+            self.assertEqual(list(result["providers"]), ["claude"])
+            self.assertEqual(result["providers"]["claude"]["windows"], [])
+            self.assertNotIn("auth_revision", result["providers"]["claude"])
+
     def test_manual_refresh_cannot_bypass_backoff(self):
         old = {"status": "error", "observed_at": 100, "retry_at": 1000}
         def never():
