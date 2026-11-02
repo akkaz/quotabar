@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -30,12 +31,22 @@ def demo():
     }}
 
 
+def terminal_command(argv):
+    # Debian's alternatives launcher is absent on Fedora Workstation.
+    for name, flags in (("x-terminal-emulator", ["-e"]),
+                        ("ptyxis", ["--standalone", "--"]),
+                        ("kgx", ["--"]), ("gnome-terminal", ["--"])):
+        terminal = shutil.which(name)
+        if terminal:
+            return [terminal, *flags, *argv]
+    raise ProviderError("Installa Ptyxis, Console o GNOME Terminal per collegare l’account.", "missing_terminal")
+
+
 def login(provider, helper):
     # Launch the unmodified official CLI: browser login, refresh, storage, and
     # any required verification are owned by the provider.
     executable(provider)
-    terminal = executable("x-terminal-emulator")
-    subprocess.Popen([terminal, "-e", "/usr/bin/python3", helper, "_login", provider],
+    subprocess.Popen(terminal_command(["/usr/bin/python3", helper, "_login", provider]),
                      stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                      stderr=subprocess.DEVNULL, start_new_session=True)
 

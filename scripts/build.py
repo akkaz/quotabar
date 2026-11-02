@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-"""Build a .deb, self-contained extension ZIP, and credential-free sources."""
+"""Build native Debian/RPM packages, an extension ZIP and clean sources."""
+import argparse
 import hashlib
 import shutil
 import subprocess
@@ -9,7 +10,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "0.3.1"
+VERSION = "0.4.0"
 UUID = "quotabar@akkaz.dev"
 DIST = ROOT / "dist"
 
@@ -20,6 +21,10 @@ def copy_tree(source, destination):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--format", choices=("deb", "rpm", "all"), default="deb")
+    args = parser.parse_args()
+    files = []
     DIST.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="quotabar-build-") as temporary:
         stage = Path(temporary) / "package"
@@ -51,14 +56,16 @@ Priority: optional
 Architecture: all
 Maintainer: Gio Marco Baglioni <akkaz@users.noreply.github.com>
 Installed-Size: {size}
-Depends: gnome-shell (>= 48~), gnome-shell (<< 49~), gjs, python3 (>= 3.10), gir1.2-adw-1 (>= 1.4), gir1.2-gtk-4.0 (>= 4.10), libglib2.0-bin, x-terminal-emulator
+Depends: gnome-shell (>= 48~), gnome-shell (<< 52~), gjs, python3 (>= 3.10), gir1.2-adw-1 (>= 1.4), gir1.2-gtk-4.0 (>= 4.10), libglib2.0-bin, x-terminal-emulator
 Description: Codex and Claude subscription usage in the GNOME top panel
- Native GNOME 48 indicator with usage bars, reset countdowns, account setup
+ Native GNOME 48-51 indicator with usage bars, reset countdowns, account setup
  and automatic polling. Requires user-installed official provider CLIs.
  No telemetry, hosted backend, or credentials included.
 """)
         deb = DIST / f"quotabar_{VERSION}-1_all.deb"
-        subprocess.run(["dpkg-deb", "--root-owner-group", "--build", str(stage), str(deb)], check=True)
+        if args.format in ("deb", "all"):
+            subprocess.run(["dpkg-deb", "--root-owner-group", "--build", str(stage), str(deb)], check=True)
+            files.append(deb)
         archive = DIST / f"quotabar-{VERSION}.shell-extension.zip"
         with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as output:
             for path in sorted(extension.rglob("*")):
@@ -79,7 +86,19 @@ Description: Codex and Claude subscription usage in the GNOME top panel
                 info.uname = info.gname = "root"
                 return info
             output.add(path, arcname=f"quotabar-{VERSION}/{name}", filter=clean)
-    files = [deb, archive, source]
+    files.extend([archive, source])
+    if args.format in ("rpm", "all"):
+        with tempfile.TemporaryDirectory(prefix="quotabar-rpm-") as temporary:
+            top = Path(temporary)
+            (top / "SOURCES").mkdir()
+            shutil.copy2(source, top / "SOURCES" / source.name)
+            subprocess.run(["rpmbuild", "-ba", "--define", f"_topdir {top}",
+                            "--define", f"quotabar_version {VERSION}",
+                            str(ROOT / "packaging/quotabar.spec")], check=True)
+            for built in sorted(top.rglob("*.rpm")):
+                target = DIST / built.name
+                shutil.copy2(built, target)
+                files.append(target)
     (DIST / "SHA256SUMS").write_text("".join(
         f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.name}\n" for path in files))
     for path in files:

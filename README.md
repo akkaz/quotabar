@@ -5,7 +5,7 @@
   <a href="https://github.com/akkaz/quotabar/releases/latest"><img src="https://img.shields.io/github/v/release/akkaz/quotabar" alt="Latest release"></a>
   <a href="https://github.com/akkaz/quotabar/actions/workflows/ci.yml"><img src="https://github.com/akkaz/quotabar/actions/workflows/ci.yml/badge.svg" alt="Build and tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
-  <img src="https://img.shields.io/badge/GNOME-48-4a86cf" alt="GNOME 48">
+  <img src="https://img.shields.io/badge/GNOME-48%E2%80%9351-4a86cf" alt="GNOME 48–51">
 </p>
 <p align="center">English · <a href="README.it.md">Italiano</a></p>
 
@@ -14,8 +14,10 @@ color-coded meters and reset countdowns beside the clock or system indicators.
 Click them for a larger view, or open native settings to connect accounts and
 choose what appears.
 
-**For GNOME Shell 48.** Tested on Ubuntu 25.04. Other GNOME versions and KDE are
-not supported yet. The application interface is currently in Italian.
+**For GNOME Shell 48–51.** Native `.deb` packages for Debian/Ubuntu and native
+`.rpm` packages for Fedora Workstation. KDE Plasma is not supported. The
+application interface is currently in Italian. See the
+[validation record](docs/VALIDATION.md) for tested environments and limits.
 
 ## Install in one line
 
@@ -23,10 +25,13 @@ not supported yet. The application interface is currently in Italian.
 curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash
 ```
 
-The [installer](install.sh) fetches the latest published `.deb`, verifies its
-SHA-256 checksum and package identity, then installs it through `apt`. A graphical
+The [installer](install.sh) detects Ubuntu/Debian or Fedora and downloads the
+native `.deb` or `.rpm`. It verifies SHA-256, package name, version and
+architecture, then installs through `apt` or `dnf`. A graphical
 password prompt uses `sudo -A`, with your `SUDO_ASKPASS` helper or Zenity.
-You need `curl`, Python 3, GNOME 48, `apt`, and a graphical password helper.
+You need `curl`, Python 3, GNOME 48–51, the native package manager and query tool,
+and a graphical password helper. Fedora Atomic/Silverblue layering is not handled
+by this DNF installer; regular Fedora Workstation is the target.
 The provider CLIs are installed separately.
 
 Then:
@@ -42,11 +47,13 @@ CLIs? QuotaBar can reuse those sessions.
 <details>
 <summary>Manual install, a specific version, or download without installing</summary>
 
-Download the `.deb` from [Releases](https://github.com/akkaz/quotabar/releases/latest)
+Download the native package from [Releases](https://github.com/akkaz/quotabar/releases/latest)
 and open it with your graphical package installer, or install it from Downloads:
 
 ```bash
-sudo -A apt install ./quotabar_0.3.1-1_all.deb
+sudo -A apt install ./quotabar_0.4.0-1_all.deb
+# Fedora Workstation:
+sudo -A dnf install ./quotabar-0.4.0-1.noarch.rpm
 ```
 
 Manual `sudo -A` commands assume you have configured `SUDO_ASKPASS`.
@@ -54,7 +61,7 @@ Manual `sudo -A` commands assume you have configured `SUDO_ASKPASS`.
 Pin a release:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.3.1
+curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.4.0
 ```
 
 Download and verify without installing anything:
@@ -62,6 +69,11 @@ Download and verify without installing anything:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --download-only ./quotabar-download
 ```
+
+To download the Fedora RPM from another distribution, add `--format rpm`.
+The RPM is built directly from upstream sources with `rpmbuild`; the release
+also includes a source RPM. Rerun the installer to update: no third-party DNF
+repository is configured automatically.
 
 Releases also contain a self-contained extension ZIP and a source archive.
 For a ZIP installation, run `gnome-extensions install` on the downloaded ZIP,

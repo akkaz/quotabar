@@ -84,7 +84,7 @@ export function fillPreferences(window, settings, helper) {
     const page = new Adw.PreferencesPage({title: 'Generali', name: 'general', icon_name: 'utilities-system-monitor-symbolic'});
     window.add(page);
     const activation = new Adw.PreferencesGroup({title: 'Nella barra, quando serve',
-        description: 'Barrette, quote e tempi di reset accanto agli indicatori di GNOME. Compatibile con GNOME 48.'});
+        description: 'Barrette, quote e tempi di reset accanto agli indicatori di GNOME. Compatibile con GNOME 48–51.'});
     const shell = new Gio.Settings({schema_id: 'org.gnome.shell'});
     const auto = new Adw.SwitchRow({title: 'Mostra nel pannello e ai prossimi accessi',
         subtitle: 'Alla prima installazione può servire uscire dalla sessione e rientrare.', use_markup: false});

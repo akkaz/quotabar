@@ -19,7 +19,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Install build dependencies
-        run: sudo -A apt-get update && sudo -A apt-get install -y gjs gir1.2-adw-1 gir1.2-gtk-4.0 libglib2.0-bin dpkg-dev desktop-file-utils shellcheck
+        run: sudo -A apt-get update && sudo -A apt-get install -y gjs gir1.2-adw-1 gir1.2-gtk-4.0 libglib2.0-bin dpkg-dev desktop-file-utils shellcheck rpm
       - name: Check code and installer
         run: |
           /usr/bin/python3 scripts/check.py
@@ -38,3 +38,62 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 14
+
+  fedora-package:
+    runs-on: ubuntu-latest
+    container: fedora:43
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Install native RPM build tools
+        run: dnf install -y rpm-build python3 glib2 desktop-file-utils
+      - name: Build binary RPM and source RPM from upstream sources
+        run: |
+          python3 scripts/build.py --format rpm
+          cd dist
+          sha256sum --check SHA256SUMS
+          rpm -qp --qf '%{NAME} %{VERSION}-%{RELEASE} %{ARCH}\n' ./*.noarch.rpm
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: quotabar-rpm
+          path: dist/*.rpm
+          if-no-files-found: error
+          retention-days: 14
+
+  fedora-runtime:
+    needs: fedora-package
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        fedora: ['43', '44', '45']
+    container: fedora:${{ matrix.fedora }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: quotabar-rpm
+          path: rpm-artifacts
+      - name: Install the native package with DNF
+        run: |
+          dnf install -y ./rpm-artifacts/*.noarch.rpm
+          dnf install -y rpm-build desktop-file-utils dbus-daemon mesa-dri-drivers mesa-libEGL shadow-utils util-linux
+          rpm -q quotabar
+          quotabar --version
+          ptyxis --help | grep -- --standalone
+      - name: Backend, native preferences imports and installer regressions
+        run: python3 scripts/check.py
+      - name: Real isolated GNOME panel and popup
+        run: |
+          useradd --create-home quotabar-smoke
+          runuser -u quotabar-smoke -- bash tests/gnome-smoke.sh
+      - name: Uninstall through DNF
+        run: |
+          dnf remove -y quotabar
+          test ! -e /usr/bin/quotabar
+          test ! -d /usr/share/gnome-shell/extensions/quotabar@akkaz.dev

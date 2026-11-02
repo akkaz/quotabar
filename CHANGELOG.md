@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 — 2026-11-02
+
+- Native Fedora Workstation binary RPM and source RPM, built from upstream sources.
+- One-line installer selects apt/.deb or dnf/.rpm and verifies native package
+  identity, version, architecture and checksums before requesting privileges.
+- GNOME 48–51 support, including the orientation API required by GNOME 51.
+- Provider login supports Fedora's Ptyxis, GNOME Console and GNOME Terminal.
+- Fedora CI covers native package build, DNF install/removal, native imports and
+  an isolated GNOME panel/popup using synthetic DEMO data.
+
 ## 0.3.1 — 2026-11-02
 
 - Recover immediately when Claude Code renews credentials after an authentication

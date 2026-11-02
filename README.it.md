@@ -8,8 +8,9 @@ Barrette compatte, percentuali e tempo al reset accanto all'orologio o agli
 indicatori di sistema. Un clic apre il dettaglio; le impostazioni native
 permettono di collegare gli account e scegliere cosa mostrare.
 
-**Compatibilità attuale: GNOME Shell 48**, verificato su Ubuntu 25.04.
-Altre versioni di GNOME e KDE non sono ancora supportati. L'interfaccia è in italiano.
+**GNOME Shell 48–51**, con pacchetti nativi `.deb` per Debian/Ubuntu e `.rpm`
+per Fedora Workstation. KDE Plasma non è supportato. L'interfaccia è in italiano.
+La [scheda di validazione](docs/VALIDATION.md) distingue ambienti provati e limiti.
 
 ## Installa con una riga
 
@@ -17,11 +18,14 @@ Altre versioni di GNOME e KDE non sono ancora supportati. L'interfaccia è in it
 curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash
 ```
 
-L'[installer](install.sh) scarica il `.deb` dell'ultima release, verifica il
-checksum SHA-256 e l'identità del pacchetto, poi lo installa tramite `apt`.
+L'[installer](install.sh) riconosce Debian/Ubuntu oppure Fedora, scarica il
+pacchetto nativo `.deb` o `.rpm`, verifica SHA-256, nome, versione e architettura,
+poi lo installa tramite `apt` oppure `dnf`.
 La password viene richiesta in un popup grafico con `sudo -A`, usando
-`SUDO_ASKPASS` oppure Zenity. Servono `curl`, Python 3, GNOME 48, `apt` e un
-helper grafico per la password. Le CLI dei provider si installano separatamente.
+`SUDO_ASKPASS` oppure Zenity. Servono `curl`, Python 3, GNOME 48–51, il gestore
+pacchetti nativo e un helper grafico per la password. Le CLI dei provider si
+installano separatamente. L'installer DNF copre Fedora Workstation tradizionale;
+non gestisce il layering di Fedora Atomic/Silverblue.
 
 Dopo l'installazione:
 
@@ -35,11 +39,13 @@ il login nelle CLI ufficiali, QuotaBar può usare quelle sessioni.
 
 ### Alternative
 
-Scarica il `.deb` dalle [release](https://github.com/akkaz/quotabar/releases/latest)
+Scarica il pacchetto nativo dalle [release](https://github.com/akkaz/quotabar/releases/latest)
 e aprilo con il gestore pacchetti grafico, oppure installalo così:
 
 ```bash
-sudo -A apt install ./quotabar_0.3.1-1_all.deb
+sudo -A apt install ./quotabar_0.4.0-1_all.deb
+# Fedora Workstation:
+sudo -A dnf install ./quotabar-0.4.0-1.noarch.rpm
 ```
 
 I comandi manuali con `sudo -A` richiedono `SUDO_ASKPASS` configurato.
@@ -47,7 +53,7 @@ I comandi manuali con `sudo -A` richiedono `SUDO_ASKPASS` configurato.
 Per una versione precisa:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.3.1
+curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.4.0
 ```
 
 Per scaricare e verificare senza installare:
