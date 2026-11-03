@@ -5,7 +5,7 @@
   <a href="https://github.com/akkaz/quotabar/releases/latest"><img src="https://img.shields.io/github/v/release/akkaz/quotabar" alt="Latest release"></a>
   <a href="https://github.com/akkaz/quotabar/actions/workflows/ci.yml"><img src="https://github.com/akkaz/quotabar/actions/workflows/ci.yml/badge.svg" alt="Build and tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
-  <img src="https://img.shields.io/badge/GNOME-48-4a86cf" alt="GNOME 48">
+  <img src="https://img.shields.io/badge/GNOME-48%E2%80%9351-4a86cf" alt="GNOME 48–51">
 </p>
 <p align="center">English · <a href="README.it.md">Italiano</a></p>
 
@@ -14,8 +14,10 @@ color-coded meters and reset countdowns beside the clock or system indicators.
 Click them for a larger view, or open native settings to connect accounts and
 choose what appears.
 
-**For GNOME Shell 48.** Tested on Ubuntu 25.04. Other GNOME versions and KDE are
-not supported yet. The application interface is currently in Italian.
+**For GNOME Shell 48–51.** Native `.deb` packages for Debian/Ubuntu and native
+`.rpm` packages for Fedora Workstation. KDE Plasma is not supported. The
+application interface is currently in Italian. See the
+[validation record](docs/VALIDATION.md) for tested environments and limits.
 
 ## Install in one line
 
@@ -23,10 +25,13 @@ not supported yet. The application interface is currently in Italian.
 curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash
 ```
 
-The [installer](install.sh) fetches the latest published `.deb`, verifies its
-SHA-256 checksum and package identity, then installs it through `apt`. A graphical
+The [installer](install.sh) detects Ubuntu/Debian or Fedora and downloads the
+native `.deb` or `.rpm`. It verifies SHA-256, package name, version and
+architecture, then installs through `apt` or `dnf`. A graphical
 password prompt uses `sudo -A`, with your `SUDO_ASKPASS` helper or Zenity.
-You need `curl`, Python 3, GNOME 48, `apt`, and a graphical password helper.
+You need `curl`, Python 3, GNOME 48–51, the native package manager and query tool,
+and a graphical password helper. Fedora Atomic/Silverblue layering is not handled
+by this DNF installer; regular Fedora Workstation is the target.
 The provider CLIs are installed separately.
 
 Then:
@@ -42,11 +47,13 @@ CLIs? QuotaBar can reuse those sessions.
 <details>
 <summary>Manual install, a specific version, or download without installing</summary>
 
-Download the `.deb` from [Releases](https://github.com/akkaz/quotabar/releases/latest)
+Download the native package from [Releases](https://github.com/akkaz/quotabar/releases/latest)
 and open it with your graphical package installer, or install it from Downloads:
 
 ```bash
-sudo -A apt install ./quotabar_0.3.1-1_all.deb
+sudo -A apt install ./quotabar_0.4.0-1_all.deb
+# Fedora Workstation:
+sudo -A dnf install ./quotabar-0.4.0-1.noarch.rpm
 ```
 
 Manual `sudo -A` commands assume you have configured `SUDO_ASKPASS`.
@@ -54,7 +61,7 @@ Manual `sudo -A` commands assume you have configured `SUDO_ASKPASS`.
 Pin a release:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.3.1
+curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.4.0
 ```
 
 Download and verify without installing anything:
@@ -63,13 +70,18 @@ Download and verify without installing anything:
 curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --download-only ./quotabar-download
 ```
 
+To download the Fedora RPM from another distribution, add `--format rpm`.
+The RPM is built directly from upstream sources with `rpmbuild`; the release
+also includes a source RPM. Rerun the installer to update: no third-party DNF
+repository is configured automatically.
+
 Releases also contain a self-contained extension ZIP and a source archive.
 For a ZIP installation, run `gnome-extensions install` on the downloaded ZIP,
 log out and back in, then enable `quotabar@akkaz.dev`.
 
-Use either the `.deb` or the ZIP. A user-installed ZIP takes priority over system
-packages and would hide `.deb` updates. Remove the user copy with
-`gnome-extensions uninstall quotabar@akkaz.dev` before switching to the `.deb`;
+Use either a native package or the ZIP. A user-installed ZIP takes priority over
+system packages and would hide `.deb`/`.rpm` updates. Remove the user copy with
+`gnome-extensions uninstall quotabar@akkaz.dev` before switching to a native package;
 then log out and back in after installation.
 
 </details>
@@ -173,7 +185,7 @@ last-success time. Check connectivity, renew the provider login if needed, and
 allow rate-limit backoff to expire. An unavailable limit is shown as `—`, not 0%.
 
 **No graphical password helper:** install Zenity through your package manager,
-configure `SUDO_ASKPASS`, or use the `.deb` with a graphical package installer.
+configure `SUDO_ASKPASS`, or open the native package with a graphical installer.
 QuotaBar never bypasses the password prompt.
 
 **Remove QuotaBar** through your graphical package manager, or:
@@ -181,6 +193,8 @@ QuotaBar never bypasses the password prompt.
 ```bash
 gnome-extensions disable quotabar@akkaz.dev
 sudo -A apt remove quotabar
+# Fedora Workstation:
+sudo -A dnf remove quotabar
 ```
 
 Log out/in to unload code already cached by GNOME. Provider CLIs and their
@@ -200,11 +214,13 @@ cd quotabar
 ```
 
 Build requirements: Python 3.10+, GJS, GTK 4.10+, Libadwaita 1.4+,
-`glib-compile-schemas`, and `dpkg-deb`. A GNOME 48 session is needed to run the
+`glib-compile-schemas`, and `dpkg-deb` (or `rpm-build` for RPM). A GNOME 48–51 session is needed to run the
 indicator, but not to build its packages. Builds require no root privileges.
 
-Outputs in `dist/`: `.deb`, self-contained extension ZIP, source `.tar.gz`, and
-`SHA256SUMS`. CI runs the tests, checks the installer, and builds the packages.
+The default build produces a `.deb`, self-contained extension ZIP, source
+`.tar.gz`, and `SHA256SUMS` in `dist/`. On Fedora, run
+`python3 scripts/build.py --format rpm` for a binary RPM and source RPM instead
+of the `.deb`. CI builds native packages and tests DNF installation and removal.
 See [CONTRIBUTING.md](CONTRIBUTING.md) and the [changelog](CHANGELOG.md).
 
 ## License and acknowledgements

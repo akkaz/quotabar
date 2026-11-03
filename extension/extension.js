@@ -259,7 +259,7 @@ export default class QuotaBar extends Extension {
         const row = new PopupMenu.PopupBaseMenuItem({reactive: true, activate: false,
             hover: false, can_focus: false});
         row.remove_style_class_name('popup-inactive-menu-item');
-        const column = new St.BoxLayout({vertical: true, style_class: 'qb-window', x_expand: true});
+        const column = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'qb-window', x_expand: true});
         const heading = new St.BoxLayout({x_expand: true});
         heading.add_child(label(item.label));
         const value = label(`${percent(item)} usato`, 'qb-number qb-menu-value');

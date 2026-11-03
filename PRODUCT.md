@@ -4,7 +4,7 @@
 
 ## Platform
 
-Linux desktop, initially Ubuntu with GNOME Shell 48. This native shell surface
+Linux desktop, GNOME Shell 48–51 on Ubuntu/Debian and Fedora Workstation. This native shell surface
 does not fit the web/iOS/Android platform enum.
 
 ## Stack
@@ -39,7 +39,8 @@ installable .deb packages with open source code.
   must be hidden, and renewed CLI credentials must unblock authentication retries.
 - A plan with only one quota window must not be shown as two windows.
 - No credentials, account identifiers, conversations or telemetry in artifacts.
-- KDE and additional GNOME versions remain future compatibility work.
+- Native Fedora RPM packaging uses the same source and preferences as the Debian
+  package; the installer selects apt or dnf. KDE and Fedora Atomic need separate work.
 
 ## Brand Commitments
 
