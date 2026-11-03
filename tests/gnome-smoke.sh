@@ -10,7 +10,7 @@ if [[ "${QUOTABAR_SMOKE_ISOLATED:-}" != 1 ]]; then
     mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME" "$XDG_RUNTIME_DIR"
     chmod 700 "$XDG_RUNTIME_DIR"
     unset DISPLAY WAYLAND_DISPLAY
-    exec dbus-run-session -- bash "$0"
+    exec /usr/bin/dbus-run-session -- /usr/bin/bash "$0"
 fi
 
 uuid=quotabar@akkaz.dev
@@ -79,16 +79,16 @@ export default class Probe extends Extension {
 }
 EOF
 
-gsettings --schemadir "$extension/schemas" set org.gnome.shell.extensions.quotabar demo-mode true
-gsettings set org.gnome.shell disable-user-extensions false
-gsettings set org.gnome.shell enabled-extensions "['$uuid', 'quotabar-smoke@test.invalid']"
-gnome-shell --headless --wayland --virtual-monitor 1280x720 --sm-disable > "$QUOTABAR_SMOKE_ROOT/shell.log" 2>&1 &
+/usr/bin/gsettings --schemadir "$extension/schemas" set org.gnome.shell.extensions.quotabar demo-mode true
+/usr/bin/gsettings set org.gnome.shell disable-user-extensions false
+/usr/bin/gsettings set org.gnome.shell enabled-extensions "['$uuid', 'quotabar-smoke@test.invalid']"
+/usr/bin/gnome-shell --headless --wayland --virtual-monitor 1280x720 --sm-disable > "$QUOTABAR_SMOKE_ROOT/shell.log" 2>&1 &
 shell_pid=$!
 trap 'kill "$shell_pid" 2>/dev/null || true' EXIT
 for ((i=0; i<80; i++)); do
     if (( i % 5 == 0 )); then
-        gnome-extensions enable "$uuid" 2>/dev/null || true
-        gnome-extensions enable quotabar-smoke@test.invalid 2>/dev/null || true
+        /usr/bin/gnome-extensions enable "$uuid" 2>/dev/null || true
+        /usr/bin/gnome-extensions enable quotabar-smoke@test.invalid 2>/dev/null || true
     fi
     if [[ -f "$QUOTABAR_SMOKE_RESULT" ]]; then
         python3 - "$QUOTABAR_SMOKE_RESULT" <<'PY'
@@ -97,7 +97,19 @@ result=json.load(open(sys.argv[1]))
 print(json.dumps(result,ensure_ascii=False))
 sys.exit(0 if result.get('ok') else 1)
 PY
-        exit "$?"
+        if [[ "${QUOTABAR_SMOKE_PTYXIS:-}" == 1 ]]; then
+            # Ptyxis initializes GTK even for --help. Use this compositor's
+            # actual socket, while it is still alive, never the user's display.
+            for socket in "$XDG_RUNTIME_DIR"/wayland-*; do
+                if [[ -S "$socket" ]]; then
+                    export WAYLAND_DISPLAY="${socket##*/}"
+                    break
+                fi
+            done
+            ptyxis --help > "$QUOTABAR_SMOKE_ROOT/ptyxis-help.txt"
+            grep -- --standalone "$QUOTABAR_SMOKE_ROOT/ptyxis-help.txt"
+        fi
+        exit 0
     fi
     if ! kill -0 "$shell_pid" 2>/dev/null; then
         cat "$QUOTABAR_SMOKE_ROOT/shell.log"
@@ -106,8 +118,8 @@ PY
     sleep 1
 done
 cat "$QUOTABAR_SMOKE_ROOT/shell.log"
-gnome-extensions info "$uuid" || true
-gnome-extensions info quotabar-smoke@test.invalid || true
-gsettings get org.gnome.shell enabled-extensions
+/usr/bin/gnome-extensions info "$uuid" || true
+/usr/bin/gnome-extensions info quotabar-smoke@test.invalid || true
+/usr/bin/gsettings get org.gnome.shell enabled-extensions
 echo "QuotaBar GNOME smoke test timed out: $QUOTABAR_SMOKE_ROOT" >&2
 exit 1

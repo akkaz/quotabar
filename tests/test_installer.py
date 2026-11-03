@@ -158,6 +158,9 @@ shutil.copyfile(pathlib.Path(os.environ['INSTALLER_ASSETS'])/url.rsplit('/',1)[-
 
     @unittest.skipIf(os.geteuid() == 0, 'Desktop installer intentionally rejects root')
     def test_unsupported_gnome_is_rejected_before_network(self):
+        manager = 'dnf' if self.package_format == 'rpm' else 'apt-get'
+        (self.bin / manager).write_text('#!/bin/sh\nexit 99\n')
+        (self.bin / manager).chmod(0o755)
         (self.bin / 'gnome-shell').write_text('#!/bin/sh\nprintf "GNOME Shell 47.0\\n"\n')
         (self.bin / 'gnome-shell').chmod(0o755)
         result = self.run_installer(download=False)

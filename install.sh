@@ -16,7 +16,7 @@ Usage: bash install.sh [--version VERSION] [--format auto|deb|rpm] [--download-o
 Install the latest QuotaBar release on GNOME 48-51 using apt or Fedora dnf.
   --format auto|deb|rpm        Auto-detect the OS, or select a package format.
   --version VERSION           Select a release, e.g. 0.2.1 or v0.2.1.
-  --download-only DIRECTORY   Verify and save the .deb without installing it.
+  --download-only DIRECTORY   Verify and save the native package without installing it.
   --help                     Show this help.
 
 Installation uses sudo -A with your existing SUDO_ASKPASS or a Zenity password

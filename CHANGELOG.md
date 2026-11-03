@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.0 — 2026-11-02
+## 0.4.0 — 2026-11-03
 
 - Native Fedora Workstation binary RPM and source RPM, built from upstream sources.
 - One-line installer selects apt/.deb or dnf/.rpm and verifies native package

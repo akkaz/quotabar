@@ -85,10 +85,11 @@ jobs:
           dnf install -y rpm-build desktop-file-utils dbus-daemon mesa-dri-drivers mesa-libEGL shadow-utils util-linux
           rpm -q quotabar
           quotabar --version
-          ptyxis --help | grep -- --standalone
       - name: Backend, native preferences imports and installer regressions
         run: python3 scripts/check.py
       - name: Real isolated GNOME panel and popup
+        env:
+          QUOTABAR_SMOKE_PTYXIS: '1'
         run: |
           useradd --create-home quotabar-smoke
           runuser -u quotabar-smoke -- bash tests/gnome-smoke.sh
