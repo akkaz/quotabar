@@ -91,6 +91,10 @@ jobs:
         env:
           QUOTABAR_SMOKE_PTYXIS: '1'
         run: |
+          # A minimal container has no system bus; GNOME needs one even when
+          # its display and session bus are isolated. This lives in the CI container.
+          mkdir -p /run/dbus
+          dbus-daemon --system --fork --nopidfile
           useradd --create-home quotabar-smoke
           runuser -u quotabar-smoke -- bash tests/gnome-smoke.sh
       - name: Uninstall through DNF
