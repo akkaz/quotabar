@@ -82,7 +82,12 @@ EOF
 /usr/bin/gsettings --schemadir "$extension/schemas" set org.gnome.shell.extensions.quotabar demo-mode true
 /usr/bin/gsettings set org.gnome.shell disable-user-extensions false
 /usr/bin/gsettings set org.gnome.shell enabled-extensions "['$uuid', 'quotabar-smoke@test.invalid']"
-/usr/bin/gnome-shell --headless --wayland --virtual-monitor 1280x720 --sm-disable > "$QUOTABAR_SMOKE_ROOT/shell.log" 2>&1 &
+shell_args=(--headless --wayland --virtual-monitor 1280x720)
+# GNOME 50+ removed the old X11 session-management option.
+if /usr/bin/gnome-shell --help | grep -q -- --sm-disable; then
+    shell_args+=(--sm-disable)
+fi
+/usr/bin/gnome-shell "${shell_args[@]}" > "$QUOTABAR_SMOKE_ROOT/shell.log" 2>&1 &
 shell_pid=$!
 trap 'kill "$shell_pid" 2>/dev/null || true' EXIT
 for ((i=0; i<80; i++)); do

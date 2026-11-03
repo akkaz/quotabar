@@ -74,7 +74,7 @@ relevant checks. Preserve the native desktop appearance and consistent colors.
 For a release, keep `quotabar/__init__.py`, `extension/metadata.json` and
 `scripts/build.py` versions in sync, and increment the extension's integer
 version. Update the changelog and pinned documentation examples. Build from a
-clean commit, verify `dist/SHA256SUMS`, and publish all three archives plus the
+clean commit, verify `dist/SHA256SUMS`, and publish all release artifacts plus the
 manifest under a matching `vX.Y.Z` GitHub release. Include the native binary and
 source RPMs produced by the Fedora build. Recompute a combined SHA256SUMS over
 all release files. `install.sh` uses that release's

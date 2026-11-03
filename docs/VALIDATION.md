@@ -1,6 +1,8 @@
 # Validation
 
-Target: GNOME Shell 48 on Ubuntu 25.04. First development build, 0.1.0.
+Targets: GNOME Shell 48–51; native Debian/Ubuntu and Fedora Workstation packages.
+The first development build targeted GNOME 48 on Ubuntu 25.04. Historical
+evidence below is dated; newer sections record subsequent validation.
 
 Automated checks and graphical checks are recorded separately. Running unit
 tests does not prove that a real panel, browser login, or login autostart works.
@@ -10,14 +12,15 @@ tests does not prove that a real panel, browser login, or login autostart works.
 - Both providers signed in: show actual windows and model-specific details.
 - Weekly-only Codex plan: show 7g, without inventing a 5h quota.
 - Provider absent, API-key account, expired session, offline, and HTTP 429:
-  explain the state and preserve old data visibly.
+  explain the state, hide unavailable/current percentages and preserve last-good
+  data privately for recovery.
 - Manual refresh must not bypass provider backoff.
 - Both providers hidden: keep a QuotaBar control that opens settings.
 - Demo mode: DEMO remains visible; no provider requests.
 - Open and navigate the menu and preferences by keyboard.
 - Change compactness, position, remaining/used, bars and countdown.
 - Enable, disable and re-enable without duplicate timers or indicators.
-- Install .deb, log out/in, verify launcher, extension activation and persistence.
+- Install the native package, log out/in, verify launcher, activation and persistence.
 - Sign in through each official browser flow in a fresh profile.
 - Uninstall and verify the extension and launcher disappear after session restart.
 

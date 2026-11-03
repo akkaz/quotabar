@@ -63,9 +63,9 @@ curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | ba
 ```
 
 Nelle release trovi anche uno ZIP autonomo per GNOME e l'archivio dei sorgenti.
-Scegli `.deb` oppure ZIP: una copia ZIP nella home ha precedenza sul pacchetto di
-sistema e ne nasconderebbe gli aggiornamenti. Prima di passare dal tuo ZIP al
-`.deb`, rimuovi la copia utente con `gnome-extensions uninstall quotabar@akkaz.dev`;
+Scegli un pacchetto nativo oppure ZIP: una copia ZIP nella home ha precedenza sul
+pacchetto di sistema e ne nasconderebbe gli aggiornamenti. Prima di passare dal
+tuo ZIP al `.deb`/`.rpm`, rimuovi la copia utente con `gnome-extensions uninstall quotabar@akkaz.dev`;
 dopo l'installazione esci dalla sessione e rientra.
 
 ## Cosa mostra
@@ -163,13 +163,15 @@ lettura riuscita. Controlla la rete, rinnova il login se serve e attendi la fine
 dell'eventuale backoff. Un limite non disponibile compare come `—`, non come 0%.
 
 **Manca l'helper della password:** installa Zenity dal gestore pacchetti,
-configura `SUDO_ASKPASS` oppure usa il `.deb` con il gestore grafico.
+configura `SUDO_ASKPASS` oppure apri il pacchetto nativo con il gestore grafico.
 
 Per disinstallare usa il gestore pacchetti grafico, oppure:
 
 ```bash
 gnome-extensions disable quotabar@akkaz.dev
 sudo -A apt remove quotabar
+# Fedora Workstation:
+sudo -A dnf remove quotabar
 ```
 
 Esci/rientra per scaricare il codice già caricato da GNOME. Le CLI e le loro
@@ -186,7 +188,9 @@ cd quotabar
 
 GJS/St per la barra, GTK 4/Libadwaita per le impostazioni, Python con sola libreria
 standard per l'helper. Nessuna dipendenza npm/pip. Il build non richiede root;
-produce `.deb`, ZIP, archivio sorgenti e `SHA256SUMS` in `dist/`.
+produce `.deb`, ZIP, archivio sorgenti e `SHA256SUMS` in `dist/`. Su Fedora usa
+`python3 scripts/build.py --format rpm` per il pacchetto RPM e il source RPM
+al posto del `.deb`. La CI verifica installazione e rimozione tramite DNF.
 Dipendenze e modalità di contribuzione: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Codice con licenza [MIT](LICENSE). Loghi e attribuzioni in
