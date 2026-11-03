@@ -93,3 +93,47 @@ checks. Existing-account reads do not prove a fresh authentication flow.
   automatic palette. External setting changes and legacy preferences synchronize.
 - The color control opens an actual visible `GtkColorChooserDialog` in the
   isolated session, rather than just changing a swatch programmatically.
+
+## 0.3.1 account-wide freshness
+
+Verified on 2026-11-02:
+
+- Credential-file revision changes recover from expired authentication without
+  copying secrets or bypassing HTTP 429 backoff. Failed, stale and expired
+  readings do not expose old percentages as current, including cache-lock reads.
+- Authenticated Claude reads and a subsequent automatic background refresh
+  returned the current account-wide weekly limit. Existing credentials were
+  used; no inference requests or fresh browser login were part of this check.
+
+## 0.4.0 native Fedora and GNOME compatibility
+
+Verified on 2026-11-03; reproducible jobs are in [ci.yml](../.github/workflows/ci.yml):
+
+| Environment | Native package | GNOME panel and popup |
+| --- | --- | --- |
+| Ubuntu 25.04 / GNOME 48 | Debian build and extracted helper | Separate local compositor, DEMO |
+| Fedora 43 / GNOME 49 | Native RPM installed with DNF | Separate container compositor, DEMO |
+| Fedora 44 / GNOME 50 | The same native RPM installed with DNF | Separate container compositor, DEMO |
+| Fedora 45 / GNOME 51 | The same native RPM installed with DNF | Separate container compositor, DEMO |
+
+- 47 Python tests are discovered. Ubuntu CI exercises real Debian and RPM
+  metadata/checksums, with one test skipped for the other OS's automatic format.
+  Fedora runs the RPM cases; Debian-only cases and root desktop guards are
+  skipped there. All environments run 70 GJS presentation assertions, native
+  GTK/Libadwaita imports and strict schema compilation.
+- The graphical probe loads the installed extension and opens its actual popup,
+  checking Claude/Codex labels and synthetic quota values. GNOME, GTK, the helper
+  and Ptyxis are real; `logind` and UPower are simulated with `python-dbusmock`
+  because the CI containers have no booted desktop session. Ptyxis's actual
+  command-line help is checked on the isolated compositor's display.
+- Binary and source RPMs are produced with `rpmbuild` from the upstream source
+  archive. CI checks DNF removal and absence of the launcher and extension
+  directory. The helper avoids creating untracked bytecode in package directories,
+  including when `--version` is run by an administrator.
+- Local Debian packaging, archive contents, shell syntax, and secret scanning
+  also pass. System GNOME utilities are used explicitly to avoid a Homebrew GLib
+  writing settings to a different backend during graphical tests.
+
+These checks do not prove fresh browser authentication, real Fedora logout/login,
+pixel layout across all themes/scaling factors, or native hardware integration.
+KDE Plasma and Fedora Atomic/Silverblue layering are not supported by this installer.
