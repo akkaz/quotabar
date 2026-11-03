@@ -82,7 +82,7 @@ jobs:
       - name: Install the native package with DNF
         run: |
           dnf install -y ./rpm-artifacts/*.noarch.rpm
-          dnf install -y rpm-build desktop-file-utils dbus-daemon mesa-dri-drivers mesa-libEGL shadow-utils util-linux
+          dnf install -y rpm-build desktop-file-utils dbus-daemon python3-dbusmock mesa-dri-drivers mesa-libEGL shadow-utils util-linux
           rpm -q quotabar
           quotabar --version
       - name: Backend, native preferences imports and installer regressions
@@ -96,7 +96,17 @@ jobs:
           mkdir -p /run/dbus
           dbus-daemon --system --fork --nopidfile
           useradd --create-home quotabar-smoke
-          runuser -u quotabar-smoke -- bash tests/gnome-smoke.sh
+          # Only the desktop session/power services are synthetic; the packaged
+          # extension, backend, GNOME Shell, GTK and terminal are the real ones.
+          python3 -m dbusmock --system --template logind > /tmp/quotabar-logind.log 2>&1 &
+          logind_pid=$!
+          python3 -m dbusmock --system --template upower > /tmp/quotabar-upower.log 2>&1 &
+          upower_pid=$!
+          trap 'kill "$logind_pid" "$upower_pid" 2>/dev/null || true' EXIT
+          gdbus wait --system --timeout=10 org.freedesktop.login1
+          gdbus wait --system --timeout=10 org.freedesktop.UPower
+          gdbus call --system --dest org.freedesktop.login1 --object-path /org/freedesktop/login1 --method org.freedesktop.DBus.Mock.AddSession smoke seat0 "$(id -u quotabar-smoke)" quotabar-smoke true
+          runuser -u quotabar-smoke -- env XDG_SESSION_ID=smoke bash tests/gnome-smoke.sh
       - name: Uninstall through DNF
         run: |
           dnf remove -y quotabar
