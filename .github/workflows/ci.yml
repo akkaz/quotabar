@@ -109,6 +109,9 @@ jobs:
           runuser -u quotabar-smoke -- env XDG_SESSION_ID=smoke bash tests/gnome-smoke.sh
       - name: Uninstall through DNF
         run: |
-          dnf remove -y quotabar
+          dnf remove -y --no-autoremove quotabar
           test ! -e /usr/bin/quotabar
-          test ! -d /usr/share/gnome-shell/extensions/quotabar@akkaz.dev
+          if test -d /usr/share/gnome-shell/extensions/quotabar@akkaz.dev; then
+            find /usr/share/gnome-shell/extensions/quotabar@akkaz.dev -type f
+            exit 1
+          fi
