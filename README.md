@@ -51,9 +51,9 @@ Download the native package from [Releases](https://github.com/akkaz/quotabar/re
 and open it with your graphical package installer, or install it from Downloads:
 
 ```bash
-sudo -A apt install ./quotabar_0.4.0-1_all.deb
+sudo -A apt install ./quotabar_0.4.1-1_all.deb
 # Fedora Workstation:
-sudo -A dnf install ./quotabar-0.4.0-1.noarch.rpm
+sudo -A dnf install ./quotabar-0.4.1-1.noarch.rpm
 ```
 
 Manual `sudo -A` commands assume you have configured `SUDO_ASKPASS`.
@@ -61,7 +61,7 @@ Manual `sudo -A` commands assume you have configured `SUDO_ASKPASS`.
 Pin a release:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.4.0
+curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.4.1
 ```
 
 Download and verify without installing anything:
@@ -183,6 +183,11 @@ Shell version needs testing and code changes, not just a metadata edit.
 **A `!` appears, or numbers stop changing:** open the menu for the error and
 last-success time. Check connectivity, renew the provider login if needed, and
 allow rate-limit backoff to expire. An unavailable limit is shown as `—`, not 0%.
+
+**“Lettura quote in pausa (HTTP 429)”** means quota reads were temporarily
+rate-limited. The popup shows the remaining retry wait; manual refresh respects
+it. Open preferences follow the panel's cache every 10 seconds and clear
+recovered errors without additional provider requests.
 
 **No graphical password helper:** install Zenity through your package manager,
 configure `SUDO_ASKPASS`, or open the native package with a graphical installer.

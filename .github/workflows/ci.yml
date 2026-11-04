@@ -90,6 +90,7 @@ jobs:
       - name: Real isolated GNOME panel and popup
         env:
           QUOTABAR_SMOKE_PTYXIS: '1'
+          QUOTABAR_SMOKE_PREFERENCES: '1'
         run: |
           # A minimal container has no system bus; GNOME needs one even when
           # its display and session bus are isolated. This lives in the CI container.

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.1 — 2026-11-04
+
+- Explain HTTP 429 as a temporary pause in quota reads and show the remaining
+  retry wait, including errors cached by previous versions.
+- Keep account status in open preferences synchronized with the panel's cache
+  every 10 seconds, clearing recovered errors without extra provider requests.
+- Add a read-only `snapshot --cached` command and a native preferences regression
+  covering rate-limit recovery and timer cleanup after closing the window.
+
 ## 0.4.0 — 2026-11-03
 
 - Native Fedora Workstation binary RPM and source RPM, built from upstream sources.

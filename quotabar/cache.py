@@ -2,6 +2,7 @@
 
 import fcntl
 import json
+import math
 import os
 import tempfile
 import time
@@ -22,11 +23,12 @@ def claude_auth_revision():
         return "unavailable"
 
 
-def cache_directory():
+def cache_directory(create=True):
     base = Path(os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache")))
     path = base / "quotabar"
-    path.mkdir(parents=True, exist_ok=True, mode=0o700)
-    path.chmod(0o700)
+    if create:
+        path.mkdir(parents=True, exist_ok=True, mode=0o700)
+        path.chmod(0o700)
     return path
 
 
@@ -76,7 +78,7 @@ def update_provider(name, old, fetch, interval, refresh, now, auth_revision=None
         failures = min(7, int(old.get("failures", 0)) + 1)
         delay = (60 if error.kind == "auth" else
                  max(error.retry_after, min(3600, interval * (2 ** (failures - 1)))))
-        # Preserve the last successful numbers, visibly marked as old data.
+        # Preserve last-good numbers privately; display_provider hides them.
         return {**old, "status": "error", "windows": old.get("windows", []),
                 "extra": old.get("extra", []), "error": str(error), "error_kind": error.kind,
                 "attempted_at": now, "failures": failures, "retry_at": now + delay,
@@ -92,6 +94,13 @@ def display_provider(data, interval, now):
             or observed > now + 60 or now - observed > interval * 2):
         data.update(status="error", error_kind="stale",
                     error="Quote non aggiornate. Attendi una nuova lettura dal provider.")
+    if data.get("status") == "error" and data.get("error_kind") == "rate_limit":
+        retry_at = number(data.get("retry_at")) or now
+        remaining = max(0, math.ceil(retry_at - now))
+        wait = (f"Riprovo tra {math.ceil(remaining / 60)} min." if remaining >= 60 else
+                f"Riprovo tra {remaining} s." if remaining else "Riprovo a breve.")
+        # Also clarifies caches written by older versions of the helper.
+        data["error"] = f"Lettura quote in pausa (HTTP 429).\n{wait}"
     if data.get("status") != "ok":
         # Preserve last-good numbers privately for recovery, never emit them
         # as percentages to the panel or settings, including older extensions.
@@ -111,11 +120,16 @@ def display_snapshot(state, jobs):
         for name, (_, interval) in jobs.items() if name in state}}
 
 
-def snapshot(refresh=False, codex_interval=60, claude_interval=180, only=None):
+def snapshot(refresh=False, codex_interval=60, claude_interval=180, only=None, cached_only=False):
     jobs = {"codex": (fetch_codex, max(30, codex_interval)),
             "claude": (fetch_claude, max(60, claude_interval))}
     if only is not None:
         jobs = {name: job for name, job in jobs.items() if name in only}
+    if cached_only:
+        # Preferences follow the panel's atomic cache without locks, writes or
+        # extra provider requests, even while another helper is fetching.
+        state = read_cache(cache_directory(create=False) / "usage.json")
+        return display_snapshot(state, jobs)
     directory = cache_directory()
     state_file = directory / "usage.json"
     descriptor = os.open(directory / "usage.lock", os.O_CREAT | os.O_RDWR, 0o600)

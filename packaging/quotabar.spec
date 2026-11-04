@@ -1,4 +1,4 @@
-%{!?quotabar_version:%global quotabar_version 0.4.0}
+%{!?quotabar_version:%global quotabar_version 0.4.1}
 
 Name:           quotabar
 Version:        %{quotabar_version}

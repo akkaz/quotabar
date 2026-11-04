@@ -137,3 +137,16 @@ Verified on 2026-11-03; reproducible jobs are in [ci.yml](../.github/workflows/c
 These checks do not prove fresh browser authentication, real Fedora logout/login,
 pixel layout across all themes/scaling factors, or native hardware integration.
 KDE Plasma and Fedora Atomic/Silverblue layering are not supported by this installer.
+
+## 0.4.1 rate-limit visibility and status recovery
+
+- 50 Python tests are discovered. New cases distinguish genuine HTTP 429 from
+  authentication/network errors, show the remaining wait from existing caches,
+  and recover through read-only cached snapshots without locks, writes or
+  provider calls. Existing manual-refresh backoff checks remain in place.
+- Native preferences testing feeds a synthetic HTTP 429 state followed by a
+  recovered cache. It checks that the visible error clears automatically, that
+  subsequent reads use only the cache, and that polling stops on window close.
+- HTTP 429 can recur after a successful read. The interface reports the current
+  quota-read state and the next retry wait; it does not infer subscription
+  exhaustion from this response.
