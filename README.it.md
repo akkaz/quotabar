@@ -43,9 +43,9 @@ Scarica il pacchetto nativo dalle [release](https://github.com/akkaz/quotabar/re
 e aprilo con il gestore pacchetti grafico, oppure installalo così:
 
 ```bash
-sudo -A apt install ./quotabar_0.4.0-1_all.deb
+sudo -A apt install ./quotabar_0.4.1-1_all.deb
 # Fedora Workstation:
-sudo -A dnf install ./quotabar-0.4.0-1.noarch.rpm
+sudo -A dnf install ./quotabar-0.4.1-1.noarch.rpm
 ```
 
 I comandi manuali con `sudo -A` richiedono `SUDO_ASKPASS` configurato.
@@ -53,7 +53,7 @@ I comandi manuali con `sudo -A` richiedono `SUDO_ASKPASS` configurato.
 Per una versione precisa:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.4.0
+curl -fsSL https://raw.githubusercontent.com/akkaz/quotabar/main/install.sh | bash -s -- --version 0.4.1
 ```
 
 Per scaricare e verificare senza installare:
@@ -161,6 +161,12 @@ al codice, non soltanto ai metadati.
 **Compare `!` o i numeri non cambiano:** apri il menu per l'errore e l'ultima
 lettura riuscita. Controlla la rete, rinnova il login se serve e attendi la fine
 dell'eventuale backoff. Un limite non disponibile compare come `—`, non come 0%.
+
+**“Lettura quote in pausa (HTTP 429)”**: la richiesta delle quote è stata
+temporaneamente limitata. Il menu mostra il tempo al prossimo tentativo;
+**Aggiorna quote** rispetta questa attesa. Lo stato nelle impostazioni segue
+automaticamente la cache della barra ogni 10 secondi, senza richieste aggiuntive
+al provider.
 
 **Manca l'helper della password:** installa Zenity dal gestore pacchetti,
 configura `SUDO_ASKPASS` oppure apri il pacchetto nativo con il gestore grafico.

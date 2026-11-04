@@ -137,9 +137,10 @@ export function fillPreferences(window, settings, helper) {
     refreshRow.add_suffix(refresh);
     accounts.add(refreshRow);
     page.add(accounts);
-    const read = (force = false) => {
+    const read = (force = false, cachedOnly = false) => {
         if (reading) {
-            readAgain = true;
+            if (!cachedOnly)
+                readAgain = true;
             return;
         }
         reading = true;
@@ -148,6 +149,8 @@ export function fillPreferences(window, settings, helper) {
             '--claude-interval', String(settings.get_int('claude-interval'))];
         if (force)
             args.push('--refresh');
+        if (cachedOnly)
+            args.push('--cached');
         const requestedDemo = settings.get_boolean('demo-mode');
         if (requestedDemo)
             args.push('--demo');
@@ -292,5 +295,10 @@ export function fillPreferences(window, settings, helper) {
         'Numeri fittizi, indicati come DEMO. Non contatta i provider.');
     demo.connect('notify::active', () => read());
     page.add(tryIt);
+    const statusTimer = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 10, () => {
+        read(false, true);
+        return GLib.SOURCE_CONTINUE;
+    });
+    cleanups.push(() => GLib.source_remove(statusTimer));
     read();
 }

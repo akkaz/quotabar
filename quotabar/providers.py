@@ -176,7 +176,7 @@ def fetch_claude():
                 retry = min(3600, max(180, int(error.headers.get("Retry-After", "180"))))
             except (TypeError, ValueError):
                 retry = 180
-            raise ProviderError("Claude limita gli aggiornamenti. Riprovo più tardi.", "rate_limit", retry) from error
+            raise ProviderError("Lettura quote Claude in pausa (HTTP 429).", "rate_limit", retry) from error
         raise ProviderError(f"Claude non disponibile (HTTP {error.code}).", "network") from error
     except (ValueError, AttributeError, TypeError) as error:
         raise ProviderError("Il formato delle quote Claude è cambiato.", "format") from error

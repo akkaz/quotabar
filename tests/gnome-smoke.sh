@@ -102,17 +102,21 @@ result=json.load(open(sys.argv[1]))
 print(json.dumps(result,ensure_ascii=False))
 sys.exit(0 if result.get('ok') else 1)
 PY
-        if [[ "${QUOTABAR_SMOKE_PTYXIS:-}" == 1 ]]; then
-            # Ptyxis initializes GTK even for --help. Use this compositor's
-            # actual socket, while it is still alive, never the user's display.
+        if [[ "${QUOTABAR_SMOKE_PTYXIS:-}${QUOTABAR_SMOKE_PREFERENCES:-}" == *1* ]]; then
+            # Native clients use this compositor, never the user's display.
             for socket in "$XDG_RUNTIME_DIR"/wayland-*; do
                 if [[ -S "$socket" ]]; then
                     export WAYLAND_DISPLAY="${socket##*/}"
                     break
                 fi
             done
+        fi
+        if [[ "${QUOTABAR_SMOKE_PTYXIS:-}" == 1 ]]; then
             ptyxis --help > "$QUOTABAR_SMOKE_ROOT/ptyxis-help.txt"
             grep -- --standalone "$QUOTABAR_SMOKE_ROOT/ptyxis-help.txt"
+        fi
+        if [[ "${QUOTABAR_SMOKE_PREFERENCES:-}" == 1 ]]; then
+            GSETTINGS_BACKEND=memory /usr/bin/gjs -m tests/preferences-status.test.js "$extension"
         fi
         exit 0
     fi

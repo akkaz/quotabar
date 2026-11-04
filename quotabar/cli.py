@@ -82,6 +82,7 @@ def main():
     commands = parser.add_subparsers(dest="command")
     usage = commands.add_parser("snapshot", help="Emetti solo quote e stato in JSON, mai credenziali")
     usage.add_argument("--refresh", action="store_true")
+    usage.add_argument("--cached", action="store_true", help="Leggi soltanto la cache, senza richieste ai provider")
     usage.add_argument("--demo", action="store_true")
     usage.add_argument("--only", choices=("codex", "claude", "both"), default="both")
     usage.add_argument("--codex-interval", type=int, default=60)
@@ -97,7 +98,8 @@ def main():
         if args.command == "snapshot":
             value = demo() if args.demo else snapshot(args.refresh, args.codex_interval,
                                                        args.claude_interval,
-                                                       None if args.only == "both" else [args.only])
+                                                       None if args.only == "both" else [args.only],
+                                                       cached_only=args.cached)
             print(json.dumps(value, ensure_ascii=False, allow_nan=False))
         elif args.command == "login":
             login(args.provider, helper)

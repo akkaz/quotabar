@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 import time
 import unittest
+import urllib.error
 from pathlib import Path
 from unittest.mock import patch
 
@@ -50,6 +51,40 @@ class Normalization(unittest.TestCase):
 
 
 class CacheRules(unittest.TestCase):
+    def test_rate_limit_display_explains_remaining_wait_without_exposing_old_usage(self):
+        old = {"status": "error", "error_kind": "rate_limit", "retry_at": 1125,
+               "observed_at": 900, "error": "Old generic message", "windows": [{"used": 83}]}
+        for now, expected in ((1000, "3 min"), (1100, "25 s"), (1125, "a breve")):
+            displayed = display_provider(old, 180, now)
+            self.assertIn("HTTP 429", displayed["error"])
+            self.assertIn(expected, displayed["error"])
+            self.assertEqual(displayed["windows"], [])
+        self.assertEqual(old["error"], "Old generic message")
+
+    def test_cached_snapshot_follows_recovery_without_lock_write_or_provider_calls(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)
+            cache_file = path / "usage.json"
+            cache_file.write_text(json.dumps({"claude": {"status": "error", "error_kind": "rate_limit",
+                "retry_at": 1125, "observed_at": 900, "windows": [{"used": 83}]}}))
+            with patch("quotabar.cache.cache_directory", return_value=path), \
+                    patch("quotabar.cache.time.time", return_value=1000), \
+                    patch("quotabar.cache.fetch_claude") as fetch, \
+                    patch("quotabar.cache.atomic_write") as write, \
+                    patch("quotabar.cache.fcntl.flock") as lock:
+                first = snapshot(only=["claude"], cached_only=True)
+                cache_file.write_text(json.dumps({"claude": {"status": "ok", "observed_at": 990,
+                    "windows": [{"used": 45}], "extra": []}}))
+                second = snapshot(only=["claude"], cached_only=True)
+            self.assertEqual(first["providers"]["claude"]["windows"], [])
+            self.assertEqual(second["providers"]["claude"]["status"], "ok")
+            self.assertNotIn("error", second["providers"]["claude"])
+            self.assertEqual(second["providers"]["claude"]["windows"], [{"used": 45}])
+            fetch.assert_not_called()
+            write.assert_not_called()
+            lock.assert_not_called()
+            self.assertFalse((path / "usage.lock").exists())
+
     def test_claude_renewed_credentials_recover_from_hour_long_auth_backoff(self):
         for saved_revision in (None, "old-login"):
             old = {"status": "error", "error_kind": "auth", "observed_at": 100,
@@ -173,6 +208,23 @@ class CacheRules(unittest.TestCase):
 
 
 class ProviderBoundaries(unittest.TestCase):
+    def test_only_http_429_is_reported_as_a_usage_read_rate_limit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".credentials.json"
+            path.write_text(json.dumps({"claudeAiOauth": {"accessToken": "dummy-local-fixture"}}))
+            for code, kind in ((429, "rate_limit"), (401, "auth"), (503, "network")):
+                error = urllib.error.HTTPError('https://api.anthropic.com/api/oauth/usage', code,
+                    'Synthetic HTTP failure', {'Retry-After': '240'}, None)
+                with patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": directory}), \
+                        patch("urllib.request.build_opener") as opener:
+                    opener.return_value.open.side_effect = error
+                    with self.assertRaises(ProviderError) as raised:
+                        fetch_claude()
+                self.assertEqual(raised.exception.kind, kind)
+                self.assertEqual("HTTP 429" in str(raised.exception), code == 429)
+                if code == 429:
+                    self.assertEqual(raised.exception.retry_after, 240)
+
     def test_http_authorization_never_follows_redirect(self):
         self.assertIsNone(NoRedirect().redirect_request(None, None, 302, "Moved", {}, "https://other.invalid"))
 
